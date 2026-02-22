@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الصيدليات</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 80px 30px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .sort-section {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .total-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #667eea;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            min-width: 110px;
+        }
+
+        .total-box .label {
+            font-size: 0.75em;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .total-box .value {
+            font-size: 1.1em;
+        }
+
+        .product-totals {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            justify-content: flex-end;
+        }
+
+        .product-total-item {
+            background: #f1f8ff;
+            border: 1px solid #dfefff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 90px;
+        }
+
+        .product-total-item .pt-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .product-total-item .pt-value {
+            font-weight: 800;
+            color: #667eea;
+            margin-top: 4px;
+        }
+        .sort-section select,
+        .sort-section button {
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        .settings-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .settings-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: #1a252f;
+        }
+
+        .settings-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 400px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            z-index: 1000;
+            top: 100%;
+            margin-top: 10px;
+            padding: 20px;
+        }
+
+        .settings-dropdown.show {
+            display: block;
+        }
+
+        .settings-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .settings-section-content {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .settings-section-content input,
+        .settings-section-content select {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .settings-section-content button {
+            padding: 10px 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        h1 {
+            color: #222;
+            margin: 0 0 18px 0;
+            text-align: right;         /* place title in its original RTL position */
+            font-size: 2.2em;          /* reduced size so it fits nicely */
+            font-weight: 800;
+            line-height: 1.1;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            padding-right: 8px;        /* small inset from the right edge */
+        }
+
+        .form-section {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button.delete-btn {
+            background: #e74c3c;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        button.delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background: #667eea;
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .products-cell {
+            max-width: 300px;
+        }
+
+        .product-item {
+            background: #e8f4f8;
+            padding: 8px 12px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95em;
+            margin: 5px 0;
+        }
+
+        .product-item button {
+            background: #e74c3c;
+            padding: 4px 8px;
+            margin-right: 8px;
+            font-size: 0.85em;
+        }
+
+        .product-item button:hover {
+            background: #c0392b;
+        }
+
+        .add-product-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .add-product-form select {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.95em;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        .add-product-form button {
+            padding: 8px 15px;
+            font-size: 0.95em;
+        }
+
+        .product-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+
+        .product-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .product-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .product-checkbox label {
+            cursor: pointer;
+            margin: 0;
+            font-weight: normal;
+            font-size: 0.95em;
+        }
+
+        .product-dropdown-checkbox {
+            display: block;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .product-dropdown-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 1.1em;
+        }
+
+        .read-only-cell {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        .number-input {
+            width: 100%;
+        }
+
+        /* Make the product group span full width under other inputs */
+        .form-section .product-group {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+
+        /* Hide number input spinners (arrows) */
+        /* Chrome, Safari, Edge, Opera */
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        @media (max-width: 768px) {
+            .form-section {
+                grid-template-columns: 1fr;
+            }
+
+            .table-wrapper {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sort-section">
+            <select id="sortType" style="border: 2px solid #ddd; border-radius: 5px;">
+                <option value="">اختر الترتيب</option>
+                <option value="تحت التصريف">ترتيب: تحت التصريف</option>
+                <option value="تم الدفع">ترتيب: تم الدفع</option>
+            </select>
+            <button onclick="sortDataByStatus()" style="background: #27ae60; margin: 0;">ترتيب</button>
+            <!-- visible Accounts button -->
+            <button id="accountsBtn" onclick="window.location.href='accounts.html'"
+                style="background:#27ae60; color:#fff; padding:8px 12px; border-radius:6px; margin-left:6px; font-weight:700;">الحسابات</button>
+
+            <div class="total-box" style="margin-left:12px;">
+                <div class="label">مجموع التحصيل</div>
+                <div id="totalBoxValue" class="value">0</div>
+            </div>
+            <button onclick="downloadInvoice()" style="background: #f39c12; color: white; padding: 8px 12px; border-radius:6px; margin-left:12px;">Download</button>
+            <!-- Excel upload (hidden input + button) -->
+            <input id="excelFileInput" type="file" accept=".xls,.xlsx,.csv" style="display:none" onchange="handleExcelFile(event)">
+            <!-- Select target pharmacy for import -->
+            <select id="importPharmacySelect" style="border: 2px solid #ddd; border-radius: 5px; background:white;">
+                <option value="__all__">كل الصيدليات</option>
+            </select>
+            <!-- Filter button -->
+            <button onclick="applyPharmacyFilter()" style="background: #27ae60; margin: 0;">Filter</button>
+            <button class="upload-btn" onclick="document.getElementById('excelFileInput').click()" title="استيراد ملف Excel أو CSV">Upload</button>
+
+            <!-- Autosave status -->
+            <div id="autosaveStatus" aria-live="polite" style="display:none; color:#fff; background:#2ecc71; padding:6px 10px; border-radius:6px; font-weight:600; margin-left:12px;">
+                حالة الحفظ: لم يتم الحفظ بعد
+            </div>
+        </div>
+
+        <h1>📋 إدارة الصيدليات</h1>
+
+        <div class="settings-menu" style="position: relative; margin-bottom: 20px;">
+            <!-- Accounts button placed next to the triple-dot settings -->
+            <button class="settings-btn" style="background:#27ae60; color:#fff; padding:10px 12px; border-radius:6px; margin-left:8px; font-weight:700;" onclick="window.location.href='accounts.html'">الحسابات</button>
+            <button class="settings-btn" onclick="toggleSettings()">⋮</button>
+            <div id="settingsDropdown" class="settings-dropdown">
+                <!-- Add Pharmacy Name -->
+                <div class="settings-section">
+                    <h3>إضافة اسم صيدلية جديد</h3>
+                    <div class="settings-section-content">
+                        <input type="text" id="newPharmacy" placeholder="اسم الصيدلية">
+                        <button onclick="addNewPharmacy()" style="background: #16a085;">إضافة</button>
+                    </div>
+                </div>
+
+                <!-- Delete Pharmacy Name -->
+                <div class="settings-section">
+                    <h3>حذف اسم صيدلية</h3>
+                    <div class="settings-section-content">
+                        <select id="pharmacyNameSelect">
+                            <option value="">اختر اسم</option>
+                        </select>
+                        <button onclick="deletePharmacyName()" style="background: #e74c3c;">حذف</button>
+                    </div>
+                </div>
+
+                <!-- Add Product -->
+                <div class="settings-section">
+                    <h3>إضافة منتج جديد</h3>
+                    <div class="settings-section-content">
+                        <input type="text" id="newProduct" placeholder="u0627سم المنتج">
+                        <button onclick="addNewProduct()" style="background: #e67e22;">إضافة</button>
+                    </div>
+                </div>
+
+                <!-- Delete Product -->
+                <div class="settings-section">
+                    <h3>حذف منتج</h3>
+                    <div class="settings-section-content">
+                        <select id="productDelete">
+                            <option value="">اختر منتج</option>
+                        </select>
+                        <button onclick="deleteProductFromList()" style="background: #c0392b;">حذف</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label for="pharmacyName">اسم الصيدلية</label>
+                <select id="pharmacyName">
+                    <option value="">اختر اسم الصيدلية</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="status">الحالة</label>
+                <select id="status">
+                    <option value="">اختر الحالة</option>
+                    <option value="تحت التصريف">تحت التصريف</option>
+                    <option value="تم الدفع">تم الدفع</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="date">التاريخ</label>
+                <input type="date" id="date">
+            </div>
+
+            <button onclick="addRow()">إضافة</button>
+
+            <div class="form-group product-group">
+                <label>المنتج</label>
+                <div id="product" class="product-checkboxes"></div>
+            </div>
+
+        </div>
+
+        <div id="productTotals" class="product-totals" aria-live="polite"></div>
+
+        <div class="table-wrapper">
+            <table id="pharmacyTable">
+                <thead>
+                    <tr>
+                        <th>اسم الصيدلية</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>المنتجات</th>
+                        <th>الكمية</th>
+                        <th>
+                            <div id="totalBefore" style="font-weight:700; margin-bottom:6px; text-align:center;">0.00</div>
+                            التحصيل قبل الخصم
+                        </th>
+                        <th>
+                            <div id="totalDiscount" style="font-weight:700; margin-bottom:6px; text-align:center;">0.00</div>
+                            فرق الخصم (5%)
+                        </th>
+                        <th>
+                            <div id="totalCollection" style="font-weight:700; margin-bottom:6px; text-align:center;">0</div>
+                            التحصيل
+                        </th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+            <div id="emptyMessage" class="empty-message">لا توجد صيدليات مسجلة حتى الآن</div>
+        </div>
+    </div>
+
+    <!-- SheetJS (XLSX) for parsing Excel and CSV in-browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        // current selected filter for displayed table ('__all__' = no filter)
+        let currentImportFilter = '__all__';
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const dropdown = document.getElementById('settingsDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const settingsMenu = document.querySelector('.settings-menu');
+            if (settingsMenu && !settingsMenu.contains(event.target)) {
+                const dropdown = document.getElementById('settingsDropdown');
+                dropdown.classList.remove('show');
+            }
+        });
+        // Load pharmacy names from localStorage
+        function loadPharmacyNames() {
+            const saved = localStorage.getItem('pharmacyNames');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        // Save pharmacy names to localStorage
+        function savePharmacyNames(names) {
+            localStorage.setItem('pharmacyNames', JSON.stringify(names));
+        }
+
+        // Populate pharmacy names dropdown
+        function populatePharmacyNamesDropdown() {
+            const names = loadPharmacyNames();
+            const pharmacySelect = document.getElementById('pharmacyName');
+            const deleteSelect = document.getElementById('pharmacyNameSelect');
+            
+            // Clear options except the first one
+            while (pharmacySelect.options.length > 1) {
+                pharmacySelect.remove(1);
+            }
+            while (deleteSelect.options.length > 1) {
+                deleteSelect.remove(1);
+            }
+            
+            // Add names to dropdowns
+            names.forEach(name => {
+                const option1 = document.createElement('option');
+                option1.value = name;
+                option1.text = name;
+                pharmacySelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = name;
+                option2.text = name;
+                deleteSelect.appendChild(option2);
+            });
+        }
+
+        // Add new pharmacy name
+        function addNewPharmacy() {
+            const newPharmacyInput = document.getElementById('newPharmacy');
+            const pharmacyName = newPharmacyInput.value.trim();
+
+            if (!pharmacyName) {
+                alert('الرجاء إدخال اسم الصيدلية');
+                return;
+            }
+
+            const names = loadPharmacyNames();
+            if (names.includes(pharmacyName)) {
+                alert('هذه الصيدلية موجودة بالفعل');
+                return;
+            }
+
+            names.push(pharmacyName);
+            savePharmacyNames(names);
+            newPharmacyInput.value = '';
+            populatePharmacyNamesDropdown();
+            populateImportPharmacySelect();
+            alert('تم إضافة الصيدلية بنجاح');
+        }
+
+        // Delete pharmacy name
+        function deletePharmacyName() {
+            const deleteSelect = document.getElementById('pharmacyNameSelect');
+            const pharmacyName = deleteSelect.value;
+
+            if (!pharmacyName) {
+                alert('الرجاء اختيار اسم للحذف');
+                return;
+            }
+
+            if (confirm('هل أنت تأكد من حذف هذه الصيدلية؟')) {
+                const names = loadPharmacyNames();
+                const filteredNames = names.filter(name => name !== pharmacyName);
+                savePharmacyNames(filteredNames);
+                deleteSelect.value = '';
+                populatePharmacyNamesDropdown();
+                populateImportPharmacySelect();
+                alert('تم حذف الصيدلية بنجاح');
+            }
+        }
+
+        // Load pharmacy names from localStorage
+        function loadPharmacyNames() {
+            const saved = localStorage.getItem('pharmacyNames');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        // Save pharmacy names to localStorage
+        function savePharmacyNames(names) {
+            localStorage.setItem('pharmacyNames', JSON.stringify(names));
+        }
+
+        // Populate pharmacy names dropdown
+        function populatePharmacyNamesDropdown() {
+            const names = loadPharmacyNames();
+            const pharmacySelect = document.getElementById('pharmacyName');
+            const deleteSelect = document.getElementById('pharmacyNameSelect');
+            
+            // Clear options except the first one
+            while (pharmacySelect.options.length > 1) {
+                pharmacySelect.remove(1);
+            }
+            while (deleteSelect.options.length > 1) {
+                deleteSelect.remove(1);
+            }
+            
+            // Add names to dropdowns
+            names.forEach(name => {
+                const option1 = document.createElement('option');
+                option1.value = name;
+                option1.text = name;
+                pharmacySelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = name;
+                option2.text = name;
+                deleteSelect.appendChild(option2);
+            });
+        }
+
+        // Add new pharmacy name
+        function addNewPharmacy() {
+            const newPharmacyInput = document.getElementById('newPharmacy');
+            const pharmacyName = newPharmacyInput.value.trim();
+
+            if (!pharmacyName) {
+                alert('الرجاء إدخال اسم الصيدلية');
+                return;
+            }
+
+            const names = loadPharmacyNames();
+            if (names.includes(pharmacyName)) {
+                alert('هذه الصيدلية موجودة بالفعل');
+                return;
+            }
+
+            names.push(pharmacyName);
+            savePharmacyNames(names);
+            newPharmacyInput.value = '';
+            populatePharmacyNamesDropdown();
+            populateImportPharmacySelect();
+            alert('تم إضافة الصيدلية بنجاح');
+        }
+
+        // Delete pharmacy name
+        function deletePharmacyName() {
+            const deleteSelect = document.getElementById('pharmacyNameSelect');
+            const pharmacyName = deleteSelect.value;
+
+            if (!pharmacyName) {
+                alert('الرجاء اختيار اسم للحذف');
+                return;
+            }
+
+            if (confirm('هل أنت تأكد من حذف هذه الصيدلية؟')) {
+                const names = loadPharmacyNames();
+                const filteredNames = names.filter(name => name !== pharmacyName);
+                savePharmacyNames(filteredNames);
+                deleteSelect.value = '';
+                populatePharmacyNamesDropdown();
+                populateImportPharmacySelect();
+                alert('تم حذف الصيدلية بنجاح');
+            }
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('pharmacies');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        // Save data to localStorage
+        function saveData(data) {
+            localStorage.setItem('pharmacies', JSON.stringify(data));
+        }
+
+        // Add a new row
+        function addRow() {
+            const pharmacyName = document.getElementById('pharmacyName').value.trim();
+            const status = document.getElementById('status').value;
+            const productContainer = document.getElementById('product');
+            const selectedOptions = Array.from(productContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
+                const name = cb.value;
+                const safe = encodeURIComponent(name);
+                const qtyEl = document.getElementById(`qty-${safe}`);
+                const qty = qtyEl ? (parseInt(qtyEl.value, 10) || 1) : 1;
+                return { name, qty };
+            });
+            const date = document.getElementById('date').value;
+
+            if (!pharmacyName) {
+                alert('الرجاء إدخال اسم الصيدلية');
+                return;
+            }
+
+            if (!status) {
+                alert('الرجاء اختيار الحالة');
+                return;
+            }
+
+            const data = loadData();
+            const newPharmacy = {
+                id: Date.now(),
+                name: pharmacyName,
+                status: status,
+                date: date,
+                products: selectedOptions,
+                collectionBeforeDiscount: 0,
+                discountDifference: 0,
+                collection: 0
+            };
+
+            data.push(newPharmacy);
+            saveData(data);
+
+            // Clear inputs
+            document.getElementById('pharmacyName').value = '';
+            document.getElementById('status').value = '';
+            document.querySelectorAll('#product input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('date').value = '';
+
+            renderTable();
+        }
+
+        // Load products from localStorage
+        function loadProducts() {
+            const saved = localStorage.getItem('products');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        // Save products to localStorage
+        function saveProducts(products) {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        // Populate products dropdown
+        function populateProductsDropdown() {
+            const products = loadProducts();
+            const productContainer = document.getElementById('product');
+            const productSelect = document.getElementById('productDelete');
+            
+            // Clear checkbox container
+            productContainer.innerHTML = '';
+            
+            // Clear delete select options except first
+            while (productSelect.options.length > 1) {
+                productSelect.remove(1);
+            }
+            
+            // Add products as checkboxes with quantity inputs and to delete dropdown
+            products.forEach(product => {
+                const safe = encodeURIComponent(product);
+                // Create checkbox container
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'product-checkbox';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `product-${safe}`;
+                checkbox.value = product;
+                
+                const label = document.createElement('label');
+                label.htmlFor = `product-${safe}`;
+                label.textContent = product;
+
+                const qtyInput = document.createElement('input');
+                qtyInput.type = 'number';
+                qtyInput.min = '1';
+                qtyInput.value = '1';
+                qtyInput.id = `qty-${safe}`;
+                qtyInput.style.width = '60px';
+                qtyInput.style.marginLeft = '8px';
+                qtyInput.title = 'الكمية';
+                
+                checkboxDiv.appendChild(checkbox);
+                checkboxDiv.appendChild(label);
+                checkboxDiv.appendChild(qtyInput);
+                productContainer.appendChild(checkboxDiv);
+                
+                // Add to delete dropdown
+                const deleteOption = document.createElement('option');
+                deleteOption.value = product;
+                deleteOption.text = product;
+                productSelect.appendChild(deleteOption);
+            });
+
+            // Refresh per-product totals (in case product list changed)
+            calculateProductTotals();
+        }
+
+        // Add new product
+        function addNewProduct() {
+            const newProductInput = document.getElementById('newProduct');
+            const productName = newProductInput.value.trim();
+
+            if (!productName) {
+                alert('الرجاء إدخال اسم المنتج');
+                return;
+            }
+
+            const products = loadProducts();
+            if (products.includes(productName)) {
+                alert('هذا المنتج موجود بالفعل');
+                return;
+            }
+
+            products.push(productName);
+            saveProducts(products);
+            newProductInput.value = '';
+            populateProductsDropdown();
+            alert('تم إضافة المنتج بنجاح');
+        }
+
+        // Delete product from list
+        function deleteProductFromList() {
+            const deleteSelect = document.getElementById('productDelete');
+            const productName = deleteSelect.value;
+
+            if (!productName) {
+                alert('الرجاء اختيار منتج للحذف');
+                return;
+            }
+
+            if (confirm('هل أنت تأكد من حذف هذا المنتج؟')) {
+                const products = loadProducts();
+                const filteredProducts = products.filter(product => product !== productName);
+                saveProducts(filteredProducts);
+                deleteSelect.value = '';
+                populateProductsDropdown();
+                alert('تم حذف المنتج بنجاح');
+            }
+        }
+
+        // Add products to pharmacy from checkboxes
+        function addProductsToPharmacyFromCheckboxes(pharmacyId) {
+            const checkboxContainer = document.getElementById(`product-checkboxes-${pharmacyId}`);
+            const checkedProducts = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            if (checkedProducts.length === 0) {
+                alert('الرجاء اختيار منتج واحد على الأقل');
+                return;
+            }
+
+            const data = loadData();
+            const pharmacy = data.find(p => p.id === pharmacyId);
+
+            if (pharmacy) {
+                checkedProducts.forEach(productName => {
+                    if (!pharmacy.products.includes(productName)) {
+                        pharmacy.products.push(productName);
+                    }
+                });
+                saveData(data);
+                // Uncheck all checkboxes
+                checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                renderTable();
+            }
+        }
+
+        // Add product to pharmacy from select (deprecated)
+        function addProductToPharmacyFromSelect(pharmacyId) {
+            const productSelect = document.getElementById(`product-select-${pharmacyId}`);
+            const productName = productSelect.value;
+
+            if (!productName) {
+                alert('الرجاء اختيار منتج');
+                return;
+            }
+
+            const data = loadData();
+            const pharmacy = data.find(p => p.id === pharmacyId);
+
+            if (pharmacy) {
+                if (!pharmacy.products.includes(productName)) {
+                    pharmacy.products.push(productName);
+                    saveData(data);
+                    productSelect.value = '';
+                    renderTable();
+                } else {
+                    alert('هذا المنتج موجود بالفعل');
+                }
+            }
+        }
+
+        // Add product to pharmacy (deprecated - keeping for backwards compatibility)
+        function addProductToPharmacy(pharmacyId) {
+            const productInput = document.getElementById(`product-input-${pharmacyId}`);
+            const productName = productInput.value.trim();
+
+            if (!productName) {
+                alert('الرجاء إدخال اسم المنتج');
+                return;
+            }
+
+            const data = loadData();
+            const pharmacy = data.find(p => p.id === pharmacyId);
+
+            if (pharmacy) {
+                pharmacy.products.push(productName);
+                saveData(data);
+                productInput.value = '';
+                renderTable();
+            }
+        }
+
+        // Delete product from pharmacy
+        function deleteProduct(pharmacyId, productIndex) {
+            const data = loadData();
+            const pharmacy = data.find(p => p.id === pharmacyId);
+
+            if (pharmacy) {
+                pharmacy.products.splice(productIndex, 1);
+                saveData(data);
+                renderTable();
+            }
+        }
+
+        // Delete pharmacy row
+        function deletePharmacy(pharmacyId) {
+            if (confirm('هل تريد حذف هذه الفتورة؟')) {
+                const data = loadData();
+                const filteredData = data.filter(p => p.id !== pharmacyId);
+                saveData(filteredData);
+                renderTable();
+            }
+        }
+
+        // Update collection values
+        function updateCollectionValues(pharmacyId) {
+            const input = document.getElementById(`collection-input-${pharmacyId}`);
+            if (!input) return;
+            // keep only digits
+            input.value = (input.value || '').toString().replace(/\D/g, '');
+            const beforeDiscount = parseFloat(input.value, 10) || 0;
+            // calculate 5% of beforeDiscount and 95% for collection (keep decimals)
+            const discountDifference = beforeDiscount * (5 / 100);
+            const collection = beforeDiscount * (95 / 100);
+
+            const data = loadData();
+            const pharmacy = data.find(p => p.id === pharmacyId);
+
+            if (pharmacy) {
+                pharmacy.collectionBeforeDiscount = Number(beforeDiscount.toFixed(2));
+                pharmacy.discountDifference = Number(discountDifference.toFixed(2));
+                pharmacy.collection = Number(collection.toFixed(2));
+                saveData(data);
+
+                // Update only the two cells in the same row to avoid re-rendering (preserves focus)
+                const row = input.closest('tr');
+                if (row) {
+                    const cells = row.querySelectorAll('td');
+                    // columns: 0=name,1=status,2=date,3=products,4=qty,5=beforeDiscount,6=discountDifference,7=collection,8=actions
+                    if (cells.length >= 8) {
+                        cells[6].innerHTML = `<strong>${(Number(discountDifference) || 0).toFixed(2)}</strong>`;
+                        cells[7].innerHTML = `<strong>${(Number(collection) || 0).toFixed(2)}</strong>`;
+                    }
+                }
+                    // update total displays (as decimals)
+                    const total = data.reduce((s, p) => s + (parseFloat(p.collection) || 0), 0);
+                    const totalEl2 = document.getElementById('totalCollection');
+                    if (totalEl2) totalEl2.textContent = total.toFixed(2);
+                    const totalBoxEl = document.getElementById('totalBoxValue');
+                    if (totalBoxEl) totalBoxEl.textContent = total.toFixed(2);
+
+                    // update total for before-discount column
+                    const totalBeforeNow = data.reduce((s, p) => s + (parseFloat(p.collectionBeforeDiscount) || 0), 0);
+                    const totalBeforeElNow = document.getElementById('totalBefore');
+                    if (totalBeforeElNow) totalBeforeElNow.textContent = totalBeforeNow.toFixed(2);
+
+                    // update total for discount column
+                    const totalDiscountNow = data.reduce((s, p) => s + (parseFloat(p.discountDifference) || 0), 0);
+                    const totalDiscountElNow = document.getElementById('totalDiscount');
+                    if (totalDiscountElNow) totalDiscountElNow.textContent = totalDiscountNow.toFixed(2);
+            }
+        }
+
+        // Sort data by status and pharmacy name
+        // Sort data by selected status
+        function sortDataByStatus() {
+            const sortType = document.getElementById('sortType').value;
+            if (!sortType) {
+                alert('الرجاء اختيار نوع الترتيب');
+                return;
+            }
+            const data = loadData();
+            // Filter data by selected status and sort by name
+            const filteredData = data.filter(p => p.status === sortType);
+            filteredData.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            // Add non-matching items at the end
+            const otherData = data.filter(p => p.status !== sortType);
+            const sortedData = [...filteredData, ...otherData];
+            saveData(sortedData);
+            renderTable();
+        }
+
+        // Calculate totals for each product and render above the table
+        function calculateProductTotals() {
+            const data = loadData();
+            const productsList = loadProducts();
+            const totals = {};
+
+            // Ensure all known products appear (even if zero)
+            productsList.forEach(p => totals[p] = 0);
+
+            data.forEach(entry => {
+                (entry.products || []).forEach(pr => {
+                    const name = (typeof pr === 'object') ? pr.name : pr;
+                    const qty = (typeof pr === 'object') ? (parseInt(pr.qty, 10) || 0) : 1;
+                    if (!name) return;
+                    if (!totals[name]) totals[name] = 0;
+                    totals[name] += qty;
+                });
+            });
+
+            const container = document.getElementById('productTotals');
+            if (!container) return;
+            container.innerHTML = '';
+
+            Object.keys(totals).forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'product-total-item';
+                item.innerHTML = `<div class="pt-name">${name}</div><div class="pt-value">${totals[name]}</div>`;
+                container.appendChild(item);
+            });
+        }
+
+        // Render the table
+        function renderTable() {
+            // load all entries then apply optional pharmacy filter
+            const rawData = loadData();
+            const data = (currentImportFilter && currentImportFilter !== '__all__')
+                ? rawData.filter(p => p.name === currentImportFilter)
+                : rawData;
+            const tableBody = document.getElementById('tableBody');
+            const emptyMessage = document.getElementById('emptyMessage');
+            // update totals above the headers (as decimals)
+            const totalEl = document.getElementById('totalCollection');
+            const totalCollection = data.reduce((sum, p) => sum + (parseFloat(p.collection) || 0), 0);
+            if (totalEl) totalEl.textContent = totalCollection.toFixed(2);
+            const totalBox = document.getElementById('totalBoxValue');
+            if (totalBox) totalBox.textContent = totalCollection.toFixed(2);
+
+            const totalBeforeEl = document.getElementById('totalBefore');
+            const totalBefore = data.reduce((sum, p) => sum + (parseFloat(p.collectionBeforeDiscount) || 0), 0);
+            if (totalBeforeEl) totalBeforeEl.textContent = totalBefore.toFixed(2);
+
+            const totalDiscountEl = document.getElementById('totalDiscount');
+            const totalDiscount = data.reduce((sum, p) => sum + (parseFloat(p.discountDifference) || 0), 0);
+            if (totalDiscountEl) totalDiscountEl.textContent = totalDiscount.toFixed(2);
+
+            // Update per-product totals display
+            calculateProductTotals();
+
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyMessage.style.display = 'block';
+                document.getElementById('pharmacyTable').style.display = 'none';
+                return;
+            }
+
+            emptyMessage.style.display = 'none';
+            document.getElementById('pharmacyTable').style.display = 'table';
+
+            data.forEach(pharmacy => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${pharmacy.name}</td>
+                    <td>${pharmacy.status === 'تحت التصريف' ? `<strong style="background-color: red; color: white; padding: 2px 6px; border-radius: 4px; display: inline-block;">${pharmacy.status}</strong>` : `<strong>${pharmacy.status}</strong>`}</td>
+                    <td>${pharmacy.date || '-'}</td>
+                    <td class="products-cell">
+                        ${pharmacy.products.map((product, index) => `
+                            <div class="product-item">
+                                <span class="product-name">${product && product.name ? product.name : product}</span>
+                                <button onclick="deleteProduct(${pharmacy.id}, ${index})">حذف</button>
+                            </div>
+                        `).join('')}
+                    </td>
+                    <td class="qty-cell">
+                        ${pharmacy.products.map((product) => `
+                            <div class="product-item">
+                                <span class="product-qty" style="display:inline-block; background:#eef7fb; padding:8px 10px; border-radius:6px; font-weight:700;">${product && product.qty ? product.qty : ''}</span>
+                            </div>
+                        `).join('')}
+                    </td>
+                    <td>
+                        <input type="number" id="collection-input-${pharmacy.id}" class="number-input" placeholder="أدخل الرقم" max="9999999999" value="${pharmacy.collectionBeforeDiscount || 0}" oninput="updateCollectionValues(${pharmacy.id})">
+                    </td>
+                    <td class="read-only-cell">
+                        <strong>${(parseFloat(pharmacy.discountDifference) || 0).toFixed(2)}</strong>
+                    </td>
+                    <td class="read-only-cell">
+                        <strong>${(parseFloat(pharmacy.collection) || 0).toFixed(2)}</strong>
+                    </td>
+                    <td>
+                        <button class="delete-btn" onclick="deletePharmacy(${pharmacy.id})">حذف</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Allow Enter key to add data
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (e.target.id === 'pharmacyName' || e.target.id === 'status' || e.target.id === 'product') {
+                    addRow();
+                }
+            }
+        });
+
+        // Initial render
+        populatePharmacyNamesDropdown();
+        populateImportPharmacySelect();
+        populateProductsDropdown();
+        currentImportFilter = '__all__';
+        renderTable();
+        // start automatic saving every 5 seconds
+        startAutoSave(5000);
+
+        // Download current data as CSV (Excel-compatible)
+        function downloadInvoice() {
+            const data = loadData();
+            if (!data || data.length === 0) {
+                alert('لا توجد بيانات للتنزيل');
+                return;
+            }
+
+            const headers = [
+                'اسم الصيدلية',
+                'الحالة',
+                'التاريخ',
+                'المنتجات',
+                'الكمية',
+                'التحصيل قبل الخصم',
+                'فرق الخصم (5%)',
+                'التحصيل'
+            ];
+
+            const rows = data.map(p => {
+                // put each product on its own line within the CSV cell (CRLF for Excel)
+                const productNames = (p.products || []).map(pr => (typeof pr === 'object' ? pr.name : pr)).join('\r\n');
+                const qtys = (p.products || []).map(pr => (typeof pr === 'object' ? pr.qty : '')).join('\r\n');
+                return [
+                    p.name || '',
+                    p.status || '',
+                    p.date || '',
+                    productNames,
+                    qtys,
+                    (parseFloat(p.collectionBeforeDiscount) || 0).toFixed(2),
+                    (parseFloat(p.discountDifference) || 0).toFixed(2),
+                    (parseFloat(p.collection) || 0).toFixed(2)
+                ];
+            });
+
+            // Build CSV content with BOM for Excel (UTF-8)
+            const bom = '\uFEFF';
+            const csvLines = [headers, ...rows].map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','));
+            const csvContent = bom + csvLines.join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'فاتورة.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        // handle file selection and validate extension (supports .xls .xlsx .csv)
+        function handleExcelFile(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const name = file.name.toLowerCase();
+            if (!(name.endsWith('.xls') || name.endsWith('.xlsx') || name.endsWith('.csv'))) {
+                alert('الرجاء اختيار ملف Excel أو CSV (.xls, .xlsx, .csv)');
+                e.target.value = '';
+                return;
+            }
+
+            // get selected pharmacy filter (default '__all__' = import all)
+            const targetSelect = document.getElementById('importPharmacySelect');
+            const targetPharmacy = targetSelect ? targetSelect.value : '__all__';
+
+            const reader = new FileReader();
+            if (name.endsWith('.csv')) {
+                reader.onload = function(evt) {
+                    try {
+                        const text = evt.target.result;
+                        // parse CSV text using SheetJS
+                        const wb = XLSX.read(text, { type: 'string' });
+                        const first = wb.SheetNames[0];
+                        const json = XLSX.utils.sheet_to_json(wb.Sheets[first], { defval: '' });
+                        parseExcelAndImport(json, targetPharmacy);
+                    } catch (err) {
+                        console.error(err);
+                        alert('حدث خطأ أثناء قراءة ملف CSV');
+                    }
+                };
+                reader.readAsText(file, 'utf-8');
+            } else {
+                reader.onload = function(evt) {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const wb = XLSX.read(data, { type: 'array' });
+                        const first = wb.SheetNames[0];
+                        const json = XLSX.utils.sheet_to_json(wb.Sheets[first], { defval: '' });
+                        parseExcelAndImport(json, targetPharmacy);
+                    } catch (err) {
+                        console.error(err);
+                        alert('حدث خطأ أثناء قراءة ملف Excel');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+            e.target.value = '';
+        }
+
+        // map and import rows to your localStorage data structure
+        // targetPharmacy: '__all__' to import all, or a specific pharmacy name to filter
+        function parseExcelAndImport(rows, targetPharmacy = '__all__') {
+            if (!Array.isArray(rows) || rows.length === 0) {
+                alert('الملف فارغ أو لا يحتوي على بيانات صالحة');
+                return;
+            }
+
+            // helper to get a value by multiple possible header keys
+            function get(row, keys) {
+                for (const k of keys) if (row[k] !== undefined) return row[k];
+                return '';
+            }
+
+            const nameKeys = ['اسم الصيدلية','Pharmacy','Name','name'];
+            const statusKeys = ['الحالة','Status','status'];
+            const dateKeys = ['التاريخ','Date','date'];
+            const productsKeys = ['المنتجات','Products','products'];
+            const qtyKeys = ['الكمية','Qty','Quantity','quantity'];
+            const beforeKeys = ['التحصيل قبل الخصم','Before','collectionBeforeDiscount'];
+            const discountKeys = ['فرق الخصم (5%)','Discount','discountDifference'];
+            const collectionKeys = ['التحصيل','Collection','collection'];
+
+            const data = loadData();
+            const productsList = new Set(loadProducts());
+            const pharmacyNames = new Set(loadPharmacyNames());
+
+            rows.forEach(r => {
+                let pname = String(get(r, nameKeys)).trim();
+                // if user selected a specific pharmacy and row has no name, attach it
+                if (!pname && targetPharmacy !== '__all__') {
+                    pname = targetPharmacy;
+                }
+                // if filtering for a specific pharmacy, skip non-matching rows
+                if (targetPharmacy !== '__all__' && pname !== targetPharmacy) return;
+                if (!pname) return;
+                const status = String(get(r, statusKeys)).trim() || '';
+                const date = String(get(r, dateKeys)).trim() || '';
+
+                // products cell may contain newline-separated product names
+                const productsCell = String(get(r, productsKeys)).trim();
+                const qtyCell = String(get(r, qtyKeys)).trim();
+                // split products and quantities by newline or comma
+                const productNames = productsCell ? productsCell.split(/\r?\n|,/) : [];
+                const qtys = qtyCell ? qtyCell.split(/\r?\n|,/) : [];
+
+                const products = productNames.map((pn, i) => {
+                    const name = String(pn || '').trim();
+                    const qty = parseInt((qtys[i] || '').toString().trim().replace(/[^\d]/g, ''), 10) || 1;
+                    if (name) productsList.add(name);
+                    return name ? { name, qty } : null;
+                }).filter(Boolean);
+
+                const beforeVal = parseFloat(String(get(r, beforeKeys)).toString().replace(/,/g, '')) || 0;
+                const discountVal = parseFloat(String(get(r, discountKeys)).toString().replace(/,/g, '')) || 0;
+                const collectionVal = parseFloat(String(get(r, collectionKeys)).toString().replace(/,/g, '')) || 0;
+
+                const newEntry = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    name: pname,
+                    status: status,
+                    date: date,
+                    products: products,
+                    collectionBeforeDiscount: Number(beforeVal.toFixed(2)),
+                    discountDifference: Number(discountVal.toFixed(2)),
+                    collection: Number(collectionVal.toFixed(2))
+                };
+                data.push(newEntry);
+                pharmacyNames.add(pname);
+            });
+
+            // persist and refresh UI
+            saveData(data);
+            saveProducts(Array.from(productsList));
+            savePharmacyNames(Array.from(pharmacyNames));
+            populateProductsDropdown();
+            populatePharmacyNamesDropdown();
+            populateImportPharmacySelect();
+            renderTable();
+            alert('تم استيراد ملف Excel بنجاح');
+        }
+
+        // populate the import-by-pharmacy select with saved pharmacy names
+        function populateImportPharmacySelect() {
+            const select = document.getElementById('importPharmacySelect');
+            if (!select) return;
+            // keep the first option (__all__), remove others
+            while (select.options.length > 1) select.remove(1);
+            const names = loadPharmacyNames();
+            names.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.text = name;
+                select.appendChild(opt);
+            });
+        }
+
+        // Called when user clicks the "تصفية" button
+        function applyPharmacyFilter() {
+            const sel = document.getElementById('importPharmacySelect');
+            currentImportFilter = sel ? sel.value : '__all__';
+            renderTable();
+        }
+
+        // Autosave: persist known app state periodically and on unload
+        function saveAllState() {
+            try {
+                const data = loadData();
+                const products = loadProducts();
+                const names = loadPharmacyNames();
+                // ensure existing save helpers are used
+                saveData(data);
+                saveProducts(products);
+                savePharmacyNames(names);
+                const ts = new Date().toLocaleString();
+                localStorage.setItem('lastAutoSave', ts);
+                updateAutosaveStatus(ts);
+            } catch (err) {
+                console.error('Autosave failed', err);
+            }
+        }
+
+        function updateAutosaveStatus(ts) {
+            const el = document.getElementById('autosaveStatus');
+            if (!el) return;
+            el.textContent = ts ? `تم الحفظ تلقائياً: ${ts}` : 'حالة الحفظ: لم يتم الحفظ بعد';
+        }
+
+        let autosaveIntervalId = null;
+        function startAutoSave(intervalMs = 5000) {
+            // run immediately then periodically
+            saveAllState();
+            if (autosaveIntervalId) clearInterval(autosaveIntervalId);
+            autosaveIntervalId = setInterval(saveAllState, intervalMs);
+        }
+
+        // save once before leaving the page
+        window.addEventListener('beforeunload', function () {
+            saveAllState();
+        });
+        // restore last autosave label on load
+        (function initAutosaveStatus() {
+            const last = localStorage.getItem('lastAutoSave');
+            updateAutosaveStatus(last);
+        })();
+    </script>
+</body>
+</html>
