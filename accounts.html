@@ -151,11 +151,14 @@
 		.back-btn {
 			background: #34495e;
 			color: #fff;
-			padding: 10px 18px;
+			padding: 12px 20px;
 			border: 0;
 			border-radius: 6px;
 			cursor: pointer;
 			margin-top: 20px;
+			font-weight: 700;
+			font-size: 1em;
+			transition: opacity 0.3s;
 		}
 		.back-btn:hover { opacity: 0.9; }
 	</style>
@@ -225,7 +228,11 @@
 			<div id="emptyMessage" class="empty-message">لا توجد بيانات مسجلة حتى الآن</div>
 		</div>
 
-		<button class="back-btn" onclick="window.location.href='index.html'">العودة إلى الإدارة</button>
+		<div class="nav-buttons" style="display:flex; gap:10px; margin-top:20px;">
+			<button class="back-btn" onclick="window.location.href='index.html'" style="background:#667eea;">📋 إدارة الصيدليات</button>
+			<button class="back-btn" onclick="window.location.href='accounts.html'" style="background:#34495e; opacity:0.6;">📊 الحسابات</button>
+			<button class="back-btn" onclick="window.location.href='products.html'" style="background:#27ae60;">📦 المنتجات</button>
+		</div>
 	</div>
 
 	<script>

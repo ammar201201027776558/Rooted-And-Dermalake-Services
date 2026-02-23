@@ -400,6 +400,12 @@
             opacity: 0.9;
         }
 
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
         /* Make the product group span full width under other inputs */
         .form-section .product-group {
             grid-column: 1 / -1;
@@ -588,7 +594,7 @@
             <div id="emptyMessage" class="empty-message">لا توجد صيدليات مسجلة حتى الآن</div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:20px;">
+        <div class="nav-buttons" style="display:flex; gap:10px; margin-top:20px;">
             <button class="back-btn" onclick="window.location.href='index.html'" style="background:#667eea; opacity:0.6;" title="الصفحة الحالية">📋 إدارة الصيدليات</button>
             <button class="back-btn" onclick="window.location.href='accounts.html'" style="background:#27ae60;">📊 الحسابات</button>
             <button class="back-btn" onclick="window.location.href='products.html'" style="background:#27ae60;">📦 المنتجات</button>
