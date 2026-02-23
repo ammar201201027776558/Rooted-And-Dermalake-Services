@@ -150,6 +150,14 @@
 </head>
 <body>
 	<div class="container">
+		<!-- Authentication controls -->
+		<div id="authArea" style="position:absolute; top:20px; right:30px; display:flex; gap:8px; align-items:center; z-index:900;">
+			<div id="authStatus" style="font-weight:700; color:#fff; background:rgba(0,0,0,0.2); padding:6px 10px; border-radius:6px;">غير مسجل</div>
+			<button id="openAuthBtn" onclick="openAuthPanel()" style="padding:6px 10px; background:#667eea; color:#fff; border-radius:6px; border:none;">تسجيل/دخول</button>
+			<button id="logoutBtn" onclick="handleLogout()" style="display:none;padding:6px 10px; background:#e74c3c; color:#fff; border-radius:6px; border:none;">خروج</button>
+			<button id="saveProgressBtn" style="padding:6px 10px; background:#27ae60; color:#fff; border-radius:6px; border:none;">حفظ التقدّم</button>
+			<button id="loadProgressBtn" style="padding:6px 10px; background:#34495e; color:#fff; border-radius:6px; border:none;">استرجاع التقدّم</button>
+		</div>
 		<h1>📦 المنتجات</h1>
 
 		<!-- Products grid -->
@@ -259,6 +267,23 @@
 
 		// Re-render when localStorage changes (from other tabs or index.html)
 		window.addEventListener('storage', renderProducts);
+	</script>
+
+	<script src="auth.js"></script>
+	<script>
+		function openAuthPanel(){
+			const username = prompt('اسم المستخدم:'); if(username===null) return;
+			const password = prompt('كلمة المرور:'); if(password===null) return;
+			const isRegister = confirm('هل تريد إنشاء حساب جديد؟ موافق=تسجيل، إلغاء=تسجيل دخول');
+			if(isRegister){ const r = auth.registerUser(username,password); if(!r.ok) alert(r.msg); else alert('تم التسجيل والدخول ك ' + username); }
+			else { const r = auth.loginUser(username,password); if(!r.ok) alert(r.msg); else alert('تم الدخول ك ' + username); }
+			updateAuthUI();
+		}
+		function handleLogout(){ auth.logoutUser(); updateAuthUI(); alert('تم تسجيل الخروج'); }
+		function updateAuthUI(){ const u = auth.getCurrentUser(); const el = document.getElementById('authStatus'); if(el) el.textContent = u ? 'المستخدم: '+u : 'غير مسجل'; document.getElementById('logoutBtn').style.display = u ? 'inline-block' : 'none'; document.getElementById('openAuthBtn').style.display = u ? 'none' : 'inline-block'; }
+		document.getElementById('saveProgressBtn').addEventListener('click', function(){ const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; } const state = { products: JSON.parse(localStorage.getItem('products')||'[]'), productStocks: JSON.parse(localStorage.getItem('productStocks')||'{}'), pharmacies: JSON.parse(localStorage.getItem('pharmacies')||'[]') }; const res = auth.saveUserProgress(state); if(res.ok) alert('تم حفظ التقدّم'); else alert(res.msg); });
+		document.getElementById('loadProgressBtn').addEventListener('click', function(){ const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; } const state = auth.loadUserProgress(); if(!state){ alert('لا توجد بيانات محفوظة'); return; } if(state.products) localStorage.setItem('products', JSON.stringify(state.products)); if(state.productStocks) localStorage.setItem('productStocks', JSON.stringify(state.productStocks)); if(state.pharmacies) localStorage.setItem('pharmacies', JSON.stringify(state.pharmacies)); alert('تم استرجاع التقدّم. أعد تحميل الصفحة إن لزم'); location.reload(); });
+		updateAuthUI();
 	</script>
 </body>
 </html>
