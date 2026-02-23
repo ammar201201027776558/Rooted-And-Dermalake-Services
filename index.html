@@ -384,6 +384,22 @@
             width: 100%;
         }
 
+        .back-btn {
+            background: #34495e;
+            color: #fff;
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1em;
+            transition: opacity 0.3s;
+        }
+
+        .back-btn:hover {
+            opacity: 0.9;
+        }
+
         /* Make the product group span full width under other inputs */
         .form-section .product-group {
             grid-column: 1 / -1;
@@ -434,6 +450,10 @@
             <!-- visible Accounts button -->
             <button id="accountsBtn" onclick="window.location.href='accounts.html'"
                 style="background:#27ae60; color:#fff; padding:8px 12px; border-radius:6px; margin-left:6px; font-weight:700;">الحسابات</button>
+            
+            <!-- Products button -->
+            <button id="productsBtn" onclick="window.location.href='products.html'"
+                style="background:#27ae60; color:#fff; padding:8px 12px; border-radius:6px; margin-left:6px; font-weight:700;">المنتجات</button>
 
             <div class="total-box" style="margin-left:12px;">
                 <div class="label">مجموع التحصيل</div>
@@ -566,6 +586,12 @@
                 </tbody>
             </table>
             <div id="emptyMessage" class="empty-message">لا توجد صيدليات مسجلة حتى الآن</div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="back-btn" onclick="window.location.href='index.html'" style="background:#667eea; opacity:0.6;" title="الصفحة الحالية">📋 إدارة الصيدليات</button>
+            <button class="back-btn" onclick="window.location.href='accounts.html'" style="background:#27ae60;">📊 الحسابات</button>
+            <button class="back-btn" onclick="window.location.href='products.html'" style="background:#27ae60;">📦 المنتجات</button>
         </div>
     </div>
 

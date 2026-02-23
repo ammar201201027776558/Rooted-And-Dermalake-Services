@@ -82,6 +82,22 @@
 			box-shadow: 0 0 4px rgba(102, 126, 234, 0.3);
 		}
 		
+		/* Header and button styles */
+		.header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+		.header-actions { display: flex; gap: 10px; align-items: center; }
+		.header-actions button {
+			padding: 12px 25px;
+			background: #667eea;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 1em;
+			font-weight: 600;
+			transition: background 0.3s;
+		}
+		.header-actions button:hover { background: #5568d3; }
+
 		/* Button in its own row */
 		.button-row {
 			display: flex;
@@ -146,7 +162,14 @@
 </head>
 <body>
 	<div class="container">
-		<h1>📊 الحسابات</h1>
+		<div class="header-row">
+			<h1>📊 الحسابات</h1>
+			<div class="header-actions">
+				<button onclick="downloadCSV()">Downlod</button>
+				<button onclick="document.getElementById('uploadFile').click()">Upload</button>
+				<input type="file" id="uploadFile" accept=".csv,text/csv" style="display:none" onchange="handleUploadFile(event)">
+			</div>
+		</div>
 
 		<!-- Summary boxes -->
 		<div class="summary-row">
@@ -299,6 +322,123 @@
 		}
 
 		// Initial render
+
+		function downloadCSV() {
+			const entries = loadEntries();
+			if (!entries.length) { alert('لا توجد بيانات للتنزيل'); return; }
+			const headers = ['الخارج من الخزنة','المبلغ','التاريخ'];
+			const rows = entries.map(e => [e.expense, (parseFloat(e.amount)||0).toFixed(2), e.date]);
+			const lines = [headers, ...rows].map(r => r.map(cell => {
+				if (cell === null || cell === undefined) return '';
+				const s = String(cell).replace(/"/g, '""');
+				return `"${s}"`;
+			}).join(','));
+			const csvContent = '\uFEFF' + lines.join('\r\n');
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'accounts_entries.csv';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		}
+
+
+		// CSV download (keeps previous implementation)
+		function downloadCSV() {
+			const entries = loadEntries();
+			if (!entries.length) { alert('لا توجد بيانات للتنزيل'); return; }
+			const headers = ['الخارج من الخزنة','المبلغ','التاريخ'];
+			const rows = entries.map(e => [e.expense, (parseFloat(e.amount)||0).toFixed(2), e.date]);
+			const lines = [headers, ...rows].map(r => r.map(cell => {
+				if (cell === null || cell === undefined) return '';
+				const s = String(cell).replace(/"/g, '""');
+				return `"${s}"`;
+			}).join(','));
+			const csvContent = '\uFEFF' + lines.join('\r\n');
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'accounts_entries.csv';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		}
+
+		function handleUploadFile(event) {
+			const file = event.target.files && event.target.files[0];
+			if (!file) return;
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				try {
+					let text = e.target.result;
+					// remove BOM
+					text = text.replace(/\uFEFF/g, '');
+					const rows = parseCSV(text);
+					if (!rows || rows.length < 2) throw new Error('ملف CSV فارغ أو بتنسيق غير صالح');
+					const headers = rows[0].map(h => h.trim());
+					const expenseIdx = findHeaderIndex(headers, ['خارج','الخارج','expense','description']);
+					const amountIdx = findHeaderIndex(headers, ['مبلغ','المبلغ','amount']);
+					const dateIdx = findHeaderIndex(headers, ['تاريخ','date']);
+					if (expenseIdx === -1 || amountIdx === -1 || dateIdx === -1) throw new Error('تأكد من أن رؤوس الأعمدة: الخارج من الخزنة, المبلغ, التاريخ');
+					const data = rows.slice(1).map(r => ({
+						id: Date.now() + Math.floor(Math.random()*1000),
+						expense: (r[expenseIdx]||'').trim(),
+						amount: parseFloat((r[amountIdx]||'').replace(/[^0-9.-]/g,'')) || 0,
+						date: (r[dateIdx]||'').trim()
+					}));
+					if (!confirm('هل تريد استبدال البيانات الموجودة بالملف المُحمل؟')) return;
+					saveEntries(data);
+					updateSummary();
+					renderTable();
+					alert('تم استيراد البيانات بنجاح');
+				} catch (err) {
+					alert('ملف غير صالح: ' + err.message);
+				} finally {
+					event.target.value = '';
+				}
+			};
+			reader.readAsText(file, 'utf-8');
+		}
+
+		function findHeaderIndex(headers, patterns) {
+			for (let i=0;i<headers.length;i++) {
+				const h = headers[i].toLowerCase();
+				for (const p of patterns) if (h.indexOf(p) !== -1) return i;
+			}
+			return -1;
+		}
+
+		function parseCSV(text) {
+			const rows = [];
+			let cur = '';
+			let row = [];
+			let inQuotes = false;
+			for (let i=0;i<text.length;i++) {
+				const ch = text[i];
+				const next = text[i+1];
+				if (ch === '"') {
+					if (inQuotes && next === '"') { cur += '"'; i++; }
+					else { inQuotes = !inQuotes; }
+				} else if (ch === ',' && !inQuotes) {
+					row.push(cur); cur = '';
+				} else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+					if (ch === '\r' && next === '\n') { /* skip, will handle on \n */ }
+					if (cur !== '' || row.length) { row.push(cur); rows.push(row); row = []; cur = ''; }
+				} else {
+					cur += ch;
+				}
+			}
+			if (inQuotes) throw new Error('تنسيق CSV: قوس اقتباس غير متوازن');
+			if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+			// Trim whitespace from cells
+			return rows.map(r => r.map(c => (c||'').trim()));
+		}
+
 		updateSummary();
 		renderTable();
 	</script>

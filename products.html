@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>المنتجات</title>
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			padding: 20px;
+			direction: rtl;
+		}
+		.container {
+			max-width: 1200px;
+			margin: 20px auto;
+			background: #fff;
+			padding: 30px;
+			border-radius: 8px;
+			box-shadow: 0 6px 18px rgba(0,0,0,.08);
+		}
+		h1 { 
+			text-align: right; 
+			margin-bottom: 30px; 
+			font-size: 2em; 
+			color: #222; 
+		}
+		
+		/* Products grid - up to 3 columns */
+		.products-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 20px;
+			margin-bottom: 30px;
+		}
+		
+		.product-box {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			padding: 25px;
+			border-radius: 8px;
+			box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+			text-align: center;
+			transition: transform 0.3s ease, box-shadow 0.3s ease;
+		}
+		
+		.product-box:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+		}
+		
+		.product-box .name {
+			font-size: 1.3em;
+			font-weight: 700;
+			margin-bottom: 15px;
+			word-break: break-word;
+		}
+		
+		.product-box .product-info {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 15px;
+			margin-top: 15px;
+		}
+		
+		.product-box .info-row {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 6px;
+		}
+		
+		.product-box .info-label {
+			font-size: 0.85em;
+			font-weight: 600;
+			opacity: 0.9;
+		}
+		
+		.product-box .info-value {
+			font-size: 1.8em;
+			font-weight: 700;
+		}
+		
+		.product-box input[type="number"] {
+			width: 80%;
+			padding: 8px;
+			font-size: 1.2em;
+			border: none;
+			border-radius: 4px;
+			text-align: center;
+			font-weight: 700;
+		}
+		
+		.product-box input[type="number"]::placeholder {
+			opacity: 0.6;
+		}
+		
+		.product-box .total {
+			font-size: 1.3em;
+			font-weight: 800;
+			margin-bottom: 10px;
+		}
+		
+		.product-box .label {
+			font-size: 0.95em;
+			font-weight: 600;
+			opacity: 0.95;
+		}
+		
+		.empty-message { 
+			text-align: center; 
+			color: #999; 
+			padding: 40px; 
+			font-size: 1.1em; 
+		}
+		
+		.back-btn {
+			background: #34495e;
+			color: #fff;
+			padding: 12px 20px;
+			border: 0;
+			border-radius: 6px;
+			cursor: pointer;
+			margin-top: 20px;
+			font-weight: 700;
+			font-size: 1em;
+			transition: opacity 0.3s;
+		}
+		
+		.back-btn:hover { 
+			opacity: 0.9; 
+		}
+		
+		@media (max-width: 768px) {
+			.products-grid {
+				grid-template-columns: 1fr;
+			}
+			
+			.product-box .total {
+				font-size: 2em;
+			}
+			
+			h1 {
+				font-size: 1.5em;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>📦 المنتجات</h1>
+
+		<!-- Products grid -->
+		<div id="productsContainer" class="products-grid">
+		</div>
+		
+		<div id="emptyMessage" class="empty-message">
+			لم تتم إضافة أي منتجات بعد
+		</div>
+
+		<div class="nav-buttons" style="display:flex; gap:10px; margin-top:20px;">
+			<button class="back-btn" onclick="window.location.href='index.html'" style="background:#667eea;">📋 إدارة الصيدليات</button>
+			<button class="back-btn" onclick="window.location.href='accounts.html'" style="background:#27ae60;">📊 الحسابات</button>
+			<button class="back-btn" onclick="window.location.href='products.html'" style="background:#34495e; opacity:0.6;">📦 المنتجات</button>
+		</div>
+	</div>
+
+	<script>
+		function loadData() {
+			const saved = localStorage.getItem('pharmacies');
+			return saved ? JSON.parse(saved) : [];
+		}
+
+		function loadProducts() {
+			const saved = localStorage.getItem('products');
+			return saved ? JSON.parse(saved) : [];
+		}
+
+		function loadProductStocks() {
+			const saved = localStorage.getItem('productStocks');
+			return saved ? JSON.parse(saved) : {};
+		}
+
+		function saveProductStocks(stocks) {
+			localStorage.setItem('productStocks', JSON.stringify(stocks));
+		}
+
+		function updateOriginalStock(product, value) {
+			const stocks = loadProductStocks();
+			const numValue = parseInt(value, 10) || 0;
+			stocks[product] = Math.max(0, numValue);
+			saveProductStocks(stocks);
+			renderProducts();
+		}
+
+		function renderProducts() {
+			const products = loadProducts();
+			const data = loadData();
+			const stocks = loadProductStocks();
+			const container = document.getElementById('productsContainer');
+			const emptyMessage = document.getElementById('emptyMessage');
+
+			container.innerHTML = '';
+
+			if (products.length === 0) {
+				emptyMessage.style.display = 'block';
+				return;
+			}
+
+			emptyMessage.style.display = 'none';
+
+			// Calculate totals for each product
+			const totals = {};
+			products.forEach(p => totals[p] = 0);
+
+			data.forEach(entry => {
+				(entry.products || []).forEach(pr => {
+					const name = (typeof pr === 'object') ? pr.name : pr;
+					const qty = (typeof pr === 'object') ? (parseInt(pr.qty, 10) || 0) : 1;
+					if (!name) return;
+					if (!totals[name]) totals[name] = 0;
+					totals[name] += qty;
+				});
+			});
+
+			// Create product boxes
+			products.forEach(product => {
+				const originalStock = stocks[product] || 0;
+				const used = totals[product] || 0;
+				const remaining = Math.max(0, originalStock - used);
+				
+				const box = document.createElement('div');
+				box.className = 'product-box';
+				box.innerHTML = `
+					<div class="name">${product}</div>
+					<div class="product-info">
+						<div class="info-row">
+							<div class="info-label">أصل الاستوك</div>
+							<input type="number" min="0" value="${originalStock}" placeholder="0" onchange="updateOriginalStock('${product.replace(/'/g, "\\'")}', this.value)" onkeyup="this.onchange()">
+						</div>
+						<div class="info-row">
+							<div class="info-label">الخارج من المخزن</div>
+							<div class="info-value">${used}</div>
+						</div>
+						<div class="info-row">
+							<div class="info-label">المتبقي</div>
+							<div class="info-value">${remaining}</div>
+						</div>
+					</div>
+				`;
+				container.appendChild(box);
+			});
+		}
+
+		// Initial render
+		renderProducts();
+
+		// Re-render when localStorage changes (from other tabs or index.html)
+		window.addEventListener('storage', renderProducts);
+	</script>
+</body>
+</html>
