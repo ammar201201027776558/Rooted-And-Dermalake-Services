@@ -461,18 +461,16 @@
 
 	<script src="auth.js"></script>
 	<script>
-		function openAuthPanel(){
-			const username = prompt('اسم المستخدم:');
-			if(username===null) return;
-			const password = prompt('كلمة المرور:');
-			if(password===null) return;
+		async function openAuthPanel(){
+			const username = prompt('اسم المستخدم:'); if(username===null) return;
+			const password = prompt('كلمة المرور:'); if(password===null) return;
 			const isRegister = confirm('هل تريد إنشاء حساب جديد؟ اضغط موافق للتسجيل، إلغاء لتسجيل الدخول');
 			if(isRegister){
-				const r = auth.registerUser(username,password);
-				if(!r.ok) alert(r.msg); else alert('تم التسجيل والدخول ك ' + username);
+				const r = await auth.registerUser(username,password);
+				if(!r.ok) alert(r.msg || 'خطأ أثناء التسجيل'); else alert('تم التسجيل والدخول ك ' + username);
 			} else {
-				const r = auth.loginUser(username,password);
-				if(!r.ok) alert(r.msg); else alert('تم الدخول ك ' + username);
+				const r = await auth.loginUser(username,password);
+				if(!r.ok) alert(r.msg || 'خطأ أثناء تسجيل الدخول'); else alert('تم الدخول ك ' + username);
 			}
 			updateAuthUI();
 		}
@@ -486,7 +484,7 @@
 			document.getElementById('openAuthBtn').style.display = u ? 'none' : 'inline-block';
 		}
 
-		document.getElementById('saveProgressBtn').addEventListener('click', function(){
+		document.getElementById('saveProgressBtn').addEventListener('click', async function(){
 			const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; }
 			const state = {
 				pharmacies: JSON.parse(localStorage.getItem('pharmacies') || '[]'),
@@ -494,13 +492,13 @@
 				products: JSON.parse(localStorage.getItem('products') || '[]'),
 				productStocks: JSON.parse(localStorage.getItem('productStocks') || '{}')
 			};
-			const res = auth.saveUserProgress(state);
-			if(res.ok) alert('تم حفظ التقدّم'); else alert(res.msg);
+			const res = await auth.saveUserProgress(state);
+			if(res.ok) alert('تم حفظ التقدّم'); else alert(res.msg || 'فشل الحفظ');
 		});
 
-		document.getElementById('loadProgressBtn').addEventListener('click', function(){
+		document.getElementById('loadProgressBtn').addEventListener('click', async function(){
 			const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; }
-			const state = auth.loadUserProgress();
+			const state = await auth.loadUserProgress();
 			if(!state){ alert('لا توجد بيانات محفوظة للمستخدم'); return; }
 			if(state.pharmacies) localStorage.setItem('pharmacies', JSON.stringify(state.pharmacies));
 			if(state.accountsEntries) localStorage.setItem('accountsEntries', JSON.stringify(state.accountsEntries));

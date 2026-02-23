@@ -271,18 +271,18 @@
 
 	<script src="auth.js"></script>
 	<script>
-		function openAuthPanel(){
+		async function openAuthPanel(){
 			const username = prompt('اسم المستخدم:'); if(username===null) return;
 			const password = prompt('كلمة المرور:'); if(password===null) return;
 			const isRegister = confirm('هل تريد إنشاء حساب جديد؟ موافق=تسجيل، إلغاء=تسجيل دخول');
-			if(isRegister){ const r = auth.registerUser(username,password); if(!r.ok) alert(r.msg); else alert('تم التسجيل والدخول ك ' + username); }
-			else { const r = auth.loginUser(username,password); if(!r.ok) alert(r.msg); else alert('تم الدخول ك ' + username); }
+			if(isRegister){ const r = await auth.registerUser(username,password); if(!r.ok) alert(r.msg || 'خطأ أثناء التسجيل'); else alert('تم التسجيل والدخول ك ' + username); }
+			else { const r = await auth.loginUser(username,password); if(!r.ok) alert(r.msg || 'خطأ أثناء تسجيل الدخول'); else alert('تم الدخول ك ' + username); }
 			updateAuthUI();
 		}
 		function handleLogout(){ auth.logoutUser(); updateAuthUI(); alert('تم تسجيل الخروج'); }
 		function updateAuthUI(){ const u = auth.getCurrentUser(); const el = document.getElementById('authStatus'); if(el) el.textContent = u ? 'المستخدم: '+u : 'غير مسجل'; document.getElementById('logoutBtn').style.display = u ? 'inline-block' : 'none'; document.getElementById('openAuthBtn').style.display = u ? 'none' : 'inline-block'; }
-		document.getElementById('saveProgressBtn').addEventListener('click', function(){ const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; } const state = { products: JSON.parse(localStorage.getItem('products')||'[]'), productStocks: JSON.parse(localStorage.getItem('productStocks')||'{}'), pharmacies: JSON.parse(localStorage.getItem('pharmacies')||'[]') }; const res = auth.saveUserProgress(state); if(res.ok) alert('تم حفظ التقدّم'); else alert(res.msg); });
-		document.getElementById('loadProgressBtn').addEventListener('click', function(){ const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; } const state = auth.loadUserProgress(); if(!state){ alert('لا توجد بيانات محفوظة'); return; } if(state.products) localStorage.setItem('products', JSON.stringify(state.products)); if(state.productStocks) localStorage.setItem('productStocks', JSON.stringify(state.productStocks)); if(state.pharmacies) localStorage.setItem('pharmacies', JSON.stringify(state.pharmacies)); alert('تم استرجاع التقدّم. أعد تحميل الصفحة إن لزم'); location.reload(); });
+		document.getElementById('saveProgressBtn').addEventListener('click', async function(){ const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; } const state = { products: JSON.parse(localStorage.getItem('products')||'[]'), productStocks: JSON.parse(localStorage.getItem('productStocks')||'{}'), pharmacies: JSON.parse(localStorage.getItem('pharmacies')||'[]') }; const res = await auth.saveUserProgress(state); if(res.ok) alert('تم حفظ التقدّم'); else alert(res.msg || 'فشل الحفظ'); });
+		document.getElementById('loadProgressBtn').addEventListener('click', async function(){ const u = auth.getCurrentUser(); if(!u){ alert('سجل الدخول أولاً'); return; } const state = await auth.loadUserProgress(); if(!state){ alert('لا توجد بيانات محفوظة'); return; } if(state.products) localStorage.setItem('products', JSON.stringify(state.products)); if(state.productStocks) localStorage.setItem('productStocks', JSON.stringify(state.productStocks)); if(state.pharmacies) localStorage.setItem('pharmacies', JSON.stringify(state.pharmacies)); alert('تم استرجاع التقدّم. أعد تحميل الصفحة إن لزم'); location.reload(); });
 		updateAuthUI();
 	</script>
 </body>
